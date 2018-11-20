@@ -4,6 +4,8 @@
 
 Tensorflow implementation of Amazon DeepAR
 
+DISCLAIMER: This package is under active development!
+
 Example usage:
 
 ```python
