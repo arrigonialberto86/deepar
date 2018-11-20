@@ -9,7 +9,7 @@ logger = logging.getLogger('deepar')
 
 
 class DeepAR(NNModel):
-    def __init__(self, ts_obj, steps_per_epoch, epochs, loss='mse', optimizer='adam'):
+    def __init__(self, ts_obj, steps_per_epoch, epochs, loss='mse', optimizer='adam', with_nn_structure=None):
         self.ts_obj = ts_obj
         self.inputs, self.z_sample = None, None
         self.steps_per_epoch = steps_per_epoch
@@ -17,9 +17,13 @@ class DeepAR(NNModel):
         self.loss = loss
         self.optimizer = optimizer
         self.keras_model = None
+        if with_nn_structure:
+            self.nn_structure = with_nn_structure
+        else:
+            self.nn_structure = DeepAR.basic_structure()
 
     @staticmethod
-    def net_structure():
+    def basic_structure():
         """
         This is the method that needs to be patched when changing NN structure
         :return: inputs, z_sample ()
