@@ -72,13 +72,21 @@ class TestRecurrentTs(unittest.TestCase):
     def test_next_batch_covariates(self):
         """
         Feature space is supplied in input if target_only is False (no need to lag y dataset)
-        :return:
         """
         rec_ts = TimeSeries(self.input_data)
         X_feature_space, y_target = rec_ts.next_batch(batch_size=1, n_steps=10)
         self.assertEqual(len(X_feature_space), 1)
         self.assertEqual(len(X_feature_space[0][0]), 2)
 
+    def test_sample_ts(self):
+        """
+        When the length of the pandas df is longer than required length the function should sample
+        from the time series and return that sample
+        """
+        rec_instance = TimeSeries(pandas_df=self.data_to_pad)
+        results = rec_instance._sample_ts(pandas_df=self.data_to_pad,
+                                          desired_len=3)
+        self.assertEqual(results.shape[0], 3)
 
 if __name__ == '__main__':
     unittest.main()
