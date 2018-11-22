@@ -62,4 +62,4 @@ plt.fill_between(x = tot_res.index, y1=tot_res.two_lower, y2=tot_res.two_upper, 
 plt.title('Prediction uncertainty')
 ```
 
-![Image of gaussian](imgs/gaussian.png)
+![Image of gaussian](imgs/prediction.png)
