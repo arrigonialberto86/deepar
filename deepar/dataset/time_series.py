@@ -30,24 +30,42 @@ class MockTs(Dataset):
         ys = self._time_series(Ts)
         return ys[:, :-1].reshape(-1, n_steps, 1), ys[:, 1:].reshape(-1, n_steps, 1)
 
-    def create_mock_ts(self, n_inputs, n_steps):
+    @property
+    def mock_ts(self):
         """
-        Create a mock time series (whole)
+        Return the data used for training (ranging from self.t_min and self.t_max, with resolution self.resolution)
         :return: a Numpy array
         """
-        t_instance = np.linspace(12.2, 12.2 + self.resolution * (n_steps + 1), n_steps + 1)
-        return self._time_series(np.array(t_instance[:-1].reshape(-1, n_steps, n_inputs)))
+        t_list = [self.t_min]
+        results = [self._time_series(t_list[0])]
+        while t_list[-1] < self.t_max:
+            t_list.append(t_list[-1] + self.resolution)
+            results.append(self._time_series(t_list[-1]))
+        return results
+
+    def generate_test_data(self, n_steps):
+        """
+        Generate test data outside of the training set (t > self.t_max)
+        :param n_steps:
+        :return:
+        """
+        t_list = [self.t_max + self.resolution]
+        results = [self._time_series(t_list[0])]
+        for i in range(1, n_steps):
+            t_list.append(t_list[-1] + self.resolution)
+            results.append(self._time_series(t_list[-1]))
+        return results
 
 
 class TimeSeries(Dataset):
-    def __init__(self, pandas_df, one_hot_root_list=None, grouping_variable='category'):
+    def __init__(self, pandas_df, one_hot_root_list=None, grouping_variable='category', scaler=None):
         super().__init__()
         self.data = pandas_df
         self.one_hot_root_list = one_hot_root_list
-        # self.target_only = target_only
         self.grouping_variable = grouping_variable
         if self.data is None:
             raise ValueError('Must provide a Pandas df to instantiate this class')
+        self.scaler = scaler
 
     def _one_hot_padding(self, pandas_df, padding_df):
         """
@@ -131,6 +149,16 @@ class TimeSeries(Dataset):
                     logger.debug('Sampled data for {}'.format(cat))
                     logger.debug(sampled_cat_data)
         rnn_output = pd.concat(sampled).drop(columns=self.grouping_variable).reset_index(drop=True)
+
+        if self.scaler:
+            batch_scaler = self.scaler()
+            n_rows = rnn_output.shape[0]
+            # Scaling will have to be extended to handle multiple variables!
+            rnn_output['feature_1'] = rnn_output.feature_1.astype('float')
+            rnn_output[target_var] = rnn_output[target_var].astype('float')
+
+            rnn_output['feature_1'] = batch_scaler.fit_transform(rnn_output.feature_1.values.reshape(n_rows, 1)).reshape(n_rows)
+            rnn_output[target_var] = batch_scaler.fit_transform(rnn_output[target_var].values.reshape(n_rows, 1)).reshape(n_rows)
 
         return rnn_output.drop(target_var, 1).as_matrix().reshape(batch_size, n_steps, -1), \
                rnn_output[target_var].as_matrix().reshape(batch_size, n_steps, 1)

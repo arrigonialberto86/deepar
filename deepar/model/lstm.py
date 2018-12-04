@@ -6,6 +6,7 @@ from keras.layers import LSTM
 from keras import backend as K
 import logging
 from deepar.model.loss import gaussian_likelihood
+import numpy as np
 
 logger = logging.getLogger('deepar')
 
@@ -37,8 +38,8 @@ class DeepAR(NNModel):
         """
         input_shape = (20, 1)
         inputs = Input(shape=input_shape)
-        x = LSTM(10, return_sequences=True, dropout=0.2)(inputs)
-        x = Dense(10, activation='relu')(x)
+        x = LSTM(4, return_sequences=True)(inputs)
+        x = Dense(3, activation='relu')(x)
         loc, scale = GaussianLayer(1, name='main_output')(x)
         return input_shape, inputs, [loc, scale]
 
