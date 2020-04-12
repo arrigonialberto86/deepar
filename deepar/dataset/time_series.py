@@ -160,7 +160,7 @@ class TimeSeries(Dataset):
             rnn_output['feature_1'] = batch_scaler.fit_transform(rnn_output.feature_1.values.reshape(n_rows, 1)).reshape(n_rows)
             rnn_output[target_var] = batch_scaler.fit_transform(rnn_output[target_var].values.reshape(n_rows, 1)).reshape(n_rows)
 
-        return rnn_output.drop(target_var, 1).as_matrix().reshape(batch_size, n_steps, -1), \
-               rnn_output[target_var].as_matrix().reshape(batch_size, n_steps, 1)
+        return rnn_output.drop(target_var, 1).values.reshape(batch_size, n_steps, -1), \
+               rnn_output[target_var].values.reshape(batch_size, n_steps, 1)
 
 
